@@ -1,0 +1,8 @@
+orm:
+  default:
+    mysql: "hitrix_user:hitrix_pass@tcp(db:3308)/hitrix_db?parseTime=true" 
+    redis: "redis:6379:1"
+    locker: default
+    local_cache: 1000
+  search:
+    redis: "redis:6379:2"

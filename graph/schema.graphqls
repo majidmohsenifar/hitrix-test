@@ -1,0 +1,28 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Product{
+   id: ID!
+   name: String!
+   price: Float!
+}
+
+input ProductListInput{
+   name:  String
+   minPrice: Float
+   maxPrice: Float
+}
+
+type Query {
+  products(input: ProductListInput): [Product]!
+}
+
+input NewProduct {
+   name: String!
+   price: Float!
+}
+
+type Mutation {
+  createProduct(input: NewProduct!): Product!
+}

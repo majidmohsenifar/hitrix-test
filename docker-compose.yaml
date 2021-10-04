@@ -1,0 +1,23 @@
+version: '3'
+services:
+  db:
+    image: mariadb:10.2
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hitrix_db
+      MYSQL_USER: hitrix_user
+      MYSQL_PASSWORD: hitrix_pass
+    logging:
+      driver: syslog
+      options:
+        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+    restart: on-failure
+    volumes:
+      - ../hitrix-db:/var/lib/mysql
+    ports:
+      - "3308:3306"
+  redis:
+    image: "redis:6.2.2-alpine"
+    ports:
+      - "6379:6379"
+
