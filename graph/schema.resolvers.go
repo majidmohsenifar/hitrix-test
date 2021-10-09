@@ -5,20 +5,50 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	generated1 "hitrix-test/graph/generated"
 	"hitrix-test/graph/model"
+	"hitrix-test/internal/auth"
+	"hitrix-test/internal/order"
 )
 
-func (r *mutationResolver) CreateProduct(ctx context.Context, input model.NewProduct) (*model.Product, error) {
-	err := r.productService.Create(input.Name, input.Price)
+func (r *mutationResolver) RegisterUser(ctx context.Context, input model.RegisterInput) (*model.User, error) {
+	params := auth.RegisterParams{
+		Email:    input.Email,
+		Password: input.Password,
+	}
+	err := r.authService.Register(params)
 	if err != nil {
 		return nil, err
 	}
-	return &model.Product{
-		ID:    "someId", //TODO handle this later
-		Name:  input.Name,
-		Price: input.Price,
+	return &model.User{
+		Email: input.Email,
 	}, nil
+}
+
+func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginInput) (*model.Login, error) {
+	params := auth.LoginParams{
+		Email:    input.Email,
+		Password: input.Password,
+	}
+	accessToken, refreshToken, err := r.authService.Login(params)
+	if err != nil {
+		return nil, err
+
+	}
+	return &model.Login{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (r *mutationResolver) AddToBasket(ctx context.Context, input model.AddToBasketInput) (*model.Basket, error) {
+	params := order.AddParams{
+		ID:       input.ID,
+		Quantity: input.Quantity,
+	}
+	r.basketService.Add(params)
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Products(ctx context.Context, input *model.ProductListInput) ([]*model.Product, error) {
@@ -45,6 +75,10 @@ func (r *queryResolver) Products(ctx context.Context, input *model.ProductListIn
 		products = append(products, product)
 	}
 	return products, nil
+}
+
+func (r *queryResolver) Basket(ctx context.Context) (*model.Basket, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated1.MutationResolver implementation.

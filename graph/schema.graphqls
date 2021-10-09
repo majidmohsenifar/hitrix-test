@@ -8,6 +8,18 @@ type Product{
    price: Float!
 }
 
+type BasketItem{
+	ProductID: Int!
+	ProductTitle: String!
+	Quantity: Int!
+	Price: Float! 
+}
+
+type Basket{
+   items: [BasketItem]!
+   total: Float!
+}
+
 input ProductListInput{
    name:  String
    minPrice: Float
@@ -16,13 +28,36 @@ input ProductListInput{
 
 type Query {
   products(input: ProductListInput): [Product]!
+  basket: Basket!
 }
 
-input NewProduct {
-   name: String!
-   price: Float!
+type User{
+   email: String!
 }
+
+input RegisterInput{
+   email: String!
+   password: String!
+}
+
+input LoginInput{
+   email: String!
+   password: String!
+}
+
+type Login{
+    accessToken: String!
+    refreshToken: String!
+}
+
+input AddToBasketInput{
+   id: Int!
+   quantity: Int!
+}
+
 
 type Mutation {
-  createProduct(input: NewProduct!): Product!
+  registerUser(input: RegisterInput!): User!
+  loginUser(input: LoginInput!): Login!
+  addToBasket(input: AddToBasketInput!): Basket!
 }

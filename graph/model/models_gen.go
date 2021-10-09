@@ -2,9 +2,31 @@
 
 package model
 
-type NewProduct struct {
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+type AddToBasketInput struct {
+	ID       int `json:"id"`
+	Quantity int `json:"quantity"`
+}
+
+type Basket struct {
+	Items []*BasketItem `json:"items"`
+	Total float64       `json:"total"`
+}
+
+type BasketItem struct {
+	ProductID    int     `json:"ProductID"`
+	ProductTitle string  `json:"ProductTitle"`
+	Quantity     int     `json:"Quantity"`
+	Price        float64 `json:"Price"`
+}
+
+type Login struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+type LoginInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type Product struct {
@@ -17,4 +39,13 @@ type ProductListInput struct {
 	Name     *string  `json:"name"`
 	MinPrice *float64 `json:"minPrice"`
 	MaxPrice *float64 `json:"maxPrice"`
+}
+
+type RegisterInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type User struct {
+	Email string `json:"email"`
 }

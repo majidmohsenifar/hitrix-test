@@ -22,16 +22,26 @@ func main() {
 		registry.ServiceProviderConfigDirectory("./config"), //register config service. As param you should point to the folder of your config file
 		registry.ServiceProviderOrmRegistry(RegisterEntities),
 		registry.ServiceProviderOrmEngine(),
-		registry.ServiceProviderJWT(),      //register JWT DI service
-		registry.ServiceProviderPassword(), //register pasword DI service
+		registry.ServiceProviderJWT(),
+		registry.ServiceProviderPassword(),
+		registry.ServiceProviderClock(),
+		registry.ServiceProviderGenerator(),
+		registry.ServiceProviderAuthentication(),
+		registry.ServiceProviderUUID(),
+
 		servicecontainer.ServiceProviderProductService(),
+		servicecontainer.ServiceProviderAuthService(),
+		servicecontainer.ServiceProviderBasketService(),
 	).RegisterDIRequestService(
 		registry.ServiceProviderOrmEngineForContext(true),
 	).Build()
 	defer deferFunc()
 	updateSchema()
+	updateRedisIndex()
 	productService := servicecontainer.ProductService()
-	graphqlResolver := graph.NewResolver(productService)
+	authService := servicecontainer.AuthService()
+	basketService := servicecontainer.BasketService()
+	graphqlResolver := graph.NewResolver(productService, authService, basketService)
 	s.RunServer(9999, generated.NewExecutableSchema(generated.Config{Resolvers: graphqlResolver}), func(ginEngine *gin.Engine) {
 		//TODO register middleware here
 	}, func(server *handler.Server) {
@@ -41,7 +51,7 @@ func main() {
 
 func RegisterEntities(registry *beeorm.Registry) {
 	registry.RegisterEntity(&entities.Product{})
-
+	registry.RegisterEntity(&entities.User{})
 }
 
 func updateSchema() {
@@ -51,4 +61,15 @@ func updateSchema() {
 		fmt.Println("alter", alter.SQL)
 		alter.Exec()
 	}
+}
+
+func updateRedisIndex() {
+	engine := servicecontainer.ORMEngine()
+	alters := engine.GetRedisSearchIndexAlters()
+	for _, alter := range alters {
+		fmt.Println("alter", alter)
+		alter.Execute()
+	}
+
+	go engine.GetRedisSearch("search").ForceReindex("entities.User")
 }

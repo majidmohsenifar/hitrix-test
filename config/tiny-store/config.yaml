@@ -1,8 +1,16 @@
 orm:
   default:
     mysql: "hitrix_user:hitrix_pass@tcp(db:3308)/hitrix_db?parseTime=true" 
-    redis: "redis:6379:1"
+    redis: "redis:6380:1"
     locker: default
     local_cache: 1000
   search:
-    redis: "redis:6379:2"
+    redis: "redis:6379:0"
+
+authentication:
+  secret: "a-deep-dark-secret" #mandatory, secret to be used for JWT
+  access_token_ttl: 86400 # optional, in seconds, default to 1day
+  refresh_token_ttl: 31536000 #optional, in seconds, default to 1year
+  auth_redis: default #optional , default is the default redis
+  #support_otp: true # if you want to support otp flow in your app
+  #otp_ttl: 120 #optional ,set it when you want to use otp, It is the ttl of otp code , default is 60 seconds
