@@ -22,6 +22,10 @@ func BasketService() *order.BasketService {
 	return service.GetServiceRequired("basket_service").(*order.BasketService)
 }
 
+func ORMEngineRequest() *beeorm.Engine {
+	return service.GetServiceRequired(service.ORMEngineRequestService).(*beeorm.Engine)
+}
+
 func ORMEngine() *beeorm.Engine {
 	return service.GetServiceRequired(service.ORMEngineGlobalService).(*beeorm.Engine)
 }

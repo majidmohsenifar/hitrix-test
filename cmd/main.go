@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"hitrix-test/graph"
 	"hitrix-test/graph/generated"
@@ -37,13 +38,15 @@ func main() {
 	).Build()
 	defer deferFunc()
 	updateSchema()
+	runBackgroundConsumer()
 	updateRedisIndex()
 	productService := servicecontainer.ProductService()
 	authService := servicecontainer.AuthService()
 	basketService := servicecontainer.BasketService()
 	graphqlResolver := graph.NewResolver(productService, authService, basketService)
+
 	s.RunServer(9999, generated.NewExecutableSchema(generated.Config{Resolvers: graphqlResolver}), func(ginEngine *gin.Engine) {
-		//TODO register middleware here
+		ginEngine.Use(authService.AuthMiddleware())
 	}, func(server *handler.Server) {
 
 	})
@@ -63,6 +66,12 @@ func updateSchema() {
 	}
 }
 
+func runBackgroundConsumer() {
+	engine := servicecontainer.ORMEngine()
+	consumer := beeorm.NewBackgroundConsumer(engine)
+	go consumer.Digest(context.Background())
+}
+
 func updateRedisIndex() {
 	engine := servicecontainer.ORMEngine()
 	alters := engine.GetRedisSearchIndexAlters()
@@ -70,6 +79,6 @@ func updateRedisIndex() {
 		fmt.Println("alter", alter)
 		alter.Execute()
 	}
-
 	go engine.GetRedisSearch("search").ForceReindex("entities.User")
+	go engine.GetRedisSearch("search").ForceReindex("entities.Product")
 }

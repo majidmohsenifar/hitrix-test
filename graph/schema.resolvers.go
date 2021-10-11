@@ -43,12 +43,16 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginInput
 }
 
 func (r *mutationResolver) AddToBasket(ctx context.Context, input model.AddToBasketInput) (*model.Basket, error) {
+	if user := r.authService.GetUserFromContext(ctx); user == nil {
+		return nil, fmt.Errorf("access denied")
+	}
 	params := order.AddParams{
 		ID:       input.ID,
 		Quantity: input.Quantity,
 	}
 	r.basketService.Add(params)
-	panic(fmt.Errorf("not implemented"))
+	//TODO handle this later
+	return &model.Basket{}, nil
 }
 
 func (r *queryResolver) Products(ctx context.Context, input *model.ProductListInput) ([]*model.Product, error) {
