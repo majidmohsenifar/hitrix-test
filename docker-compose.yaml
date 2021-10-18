@@ -1,5 +1,16 @@
 version: '3'
 services:
+  store-app:
+    container_name: store-app-go
+    command: bash -c "go build -o main cmd/main.go && ./main"
+    build:
+      context: ./.docker/
+    restart: always
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "9999:9999"
   db:
     image: mysql:8
     environment:
@@ -15,7 +26,7 @@ services:
     volumes:
       - ../hitrix-db:/var/lib/mysql
     ports:
-      - "3308:3306"
+      - "3306:3306"
   redis-search:
     image: "redislabs/redisearch:latest"
     ports:

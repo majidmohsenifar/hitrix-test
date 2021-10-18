@@ -3,7 +3,7 @@
 # https://gqlgen.com/getting-started/
 
 type Product{
-   id: ID!
+   id: Int!
    name: String!
    price: Float!
 }
@@ -55,9 +55,14 @@ input AddToBasketInput{
    quantity: Int!
 }
 
+input RemoveFromBasketInput{
+   id: Int!
+}
+
 
 type Mutation {
   registerUser(input: RegisterInput!): User!
   loginUser(input: LoginInput!): Login!
   addToBasket(input: AddToBasketInput!): Basket!
+  removeFromBasket(input: RemoveFromBasketInput!): Basket!
 }

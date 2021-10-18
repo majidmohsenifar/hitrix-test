@@ -30,7 +30,7 @@ type LoginInput struct {
 }
 
 type Product struct {
-	ID    string  `json:"id"`
+	ID    int     `json:"id"`
 	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
@@ -44,6 +44,10 @@ type ProductListInput struct {
 type RegisterInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type RemoveFromBasketInput struct {
+	ID int `json:"id"`
 }
 
 type User struct {

@@ -39,7 +39,9 @@ func ServiceProviderBasketService() *service.DefinitionGlobal {
 	return &service.DefinitionGlobal{
 		Name: "basket_service",
 		Build: func(ctn di.Container) (interface{}, error) {
-			return order.NewBasketService(), nil
+			ormEngine := ctn.Get(service.ORMEngineGlobalService).(*beeorm.Engine)
+			productService := ctn.Get("product_service").(*product.Service)
+			return order.NewBasketService(ormEngine, productService), nil
 		},
 	}
 }

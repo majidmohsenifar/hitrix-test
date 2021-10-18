@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"hitrix-test/graph"
 	"hitrix-test/graph/generated"
 	"hitrix-test/internal/entities"
@@ -61,7 +60,6 @@ func updateSchema() {
 	engine := servicecontainer.ORMEngine()
 	alters := engine.GetAlters()
 	for _, alter := range alters {
-		fmt.Println("alter", alter.SQL)
 		alter.Exec()
 	}
 }
@@ -76,9 +74,10 @@ func updateRedisIndex() {
 	engine := servicecontainer.ORMEngine()
 	alters := engine.GetRedisSearchIndexAlters()
 	for _, alter := range alters {
-		fmt.Println("alter", alter)
 		alter.Execute()
 	}
-	go engine.GetRedisSearch("search").ForceReindex("entities.User")
-	go engine.GetRedisSearch("search").ForceReindex("entities.Product")
+	if len(alters) > 0 {
+		go engine.GetRedisSearch("search").ForceReindex("entities.User")
+		go engine.GetRedisSearch("search").ForceReindex("entities.Product")
+	}
 }

@@ -61,9 +61,10 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddToBasket  func(childComplexity int, input model.AddToBasketInput) int
-		LoginUser    func(childComplexity int, input model.LoginInput) int
-		RegisterUser func(childComplexity int, input model.RegisterInput) int
+		AddToBasket      func(childComplexity int, input model.AddToBasketInput) int
+		LoginUser        func(childComplexity int, input model.LoginInput) int
+		RegisterUser     func(childComplexity int, input model.RegisterInput) int
+		RemoveFromBasket func(childComplexity int, input model.RemoveFromBasketInput) int
 	}
 
 	Product struct {
@@ -86,6 +87,7 @@ type MutationResolver interface {
 	RegisterUser(ctx context.Context, input model.RegisterInput) (*model.User, error)
 	LoginUser(ctx context.Context, input model.LoginInput) (*model.Login, error)
 	AddToBasket(ctx context.Context, input model.AddToBasketInput) (*model.Basket, error)
+	RemoveFromBasket(ctx context.Context, input model.RemoveFromBasketInput) (*model.Basket, error)
 }
 type QueryResolver interface {
 	Products(ctx context.Context, input *model.ProductListInput) ([]*model.Product, error)
@@ -198,6 +200,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RegisterUser(childComplexity, args["input"].(model.RegisterInput)), true
+
+	case "Mutation.removeFromBasket":
+		if e.complexity.Mutation.RemoveFromBasket == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeFromBasket_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveFromBasket(childComplexity, args["input"].(model.RemoveFromBasketInput)), true
 
 	case "Product.id":
 		if e.complexity.Product.ID == nil {
@@ -315,7 +329,7 @@ var sources = []*ast.Source{
 # https://gqlgen.com/getting-started/
 
 type Product{
-   id: ID!
+   id: Int!
    name: String!
    price: Float!
 }
@@ -367,11 +381,16 @@ input AddToBasketInput{
    quantity: Int!
 }
 
+input RemoveFromBasketInput{
+   id: Int!
+}
+
 
 type Mutation {
   registerUser(input: RegisterInput!): User!
   loginUser(input: LoginInput!): Login!
   addToBasket(input: AddToBasketInput!): Basket!
+  removeFromBasket(input: RemoveFromBasketInput!): Basket!
 }
 `, BuiltIn: false},
 }
@@ -418,6 +437,21 @@ func (ec *executionContext) field_Mutation_registerUser_args(ctx context.Context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNRegisterInput2hitrixᚑtestᚋgraphᚋmodelᚐRegisterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeFromBasket_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.RemoveFromBasketInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNRemoveFromBasketInput2hitrixᚑtestᚋgraphᚋmodelᚐRemoveFromBasketInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -900,6 +934,48 @@ func (ec *executionContext) _Mutation_addToBasket(ctx context.Context, field gra
 	return ec.marshalNBasket2ᚖhitrixᚑtestᚋgraphᚋmodelᚐBasket(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_removeFromBasket(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeFromBasket_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveFromBasket(rctx, args["input"].(model.RemoveFromBasketInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Basket)
+	fc.Result = res
+	return ec.marshalNBasket2ᚖhitrixᚑtestᚋgraphᚋmodelᚐBasket(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Product_id(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -930,9 +1006,9 @@ func (ec *executionContext) _Product_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Product_name(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
@@ -2442,6 +2518,29 @@ func (ec *executionContext) unmarshalInputRegisterInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputRemoveFromBasketInput(ctx context.Context, obj interface{}) (model.RemoveFromBasketInput, error) {
+	var it model.RemoveFromBasketInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2583,6 +2682,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addToBasket":
 			out.Values[i] = ec._Mutation_addToBasket(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeFromBasket":
+			out.Values[i] = ec._Mutation_removeFromBasket(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3056,21 +3160,6 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3145,6 +3234,11 @@ func (ec *executionContext) marshalNProduct2ᚕᚖhitrixᚑtestᚋgraphᚋmodel�
 
 func (ec *executionContext) unmarshalNRegisterInput2hitrixᚑtestᚋgraphᚋmodelᚐRegisterInput(ctx context.Context, v interface{}) (model.RegisterInput, error) {
 	res, err := ec.unmarshalInputRegisterInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNRemoveFromBasketInput2hitrixᚑtestᚋgraphᚋmodelᚐRemoveFromBasketInput(ctx context.Context, v interface{}) (model.RemoveFromBasketInput, error) {
+	res, err := ec.unmarshalInputRemoveFromBasketInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

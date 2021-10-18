@@ -1,11 +1,11 @@
 orm:
   default:
-    mysql: "hitrix_user:hitrix_pass@tcp(db:3308)/hitrix_db?parseTime=true" 
-    redis: "redis:6380:1"
+    mysql: "hitrix_user:hitrix_pass@tcp(db:3306)/hitrix_db?parseTime=true" 
+    redis: "redis:6379:1"
     locker: default
     local_cache: 1000
   search:
-    redis: "redis:6379:0"
+    redis: "redis-search:6379:0"
 
 authentication:
   secret: "a-deep-dark-secret" #mandatory, secret to be used for JWT

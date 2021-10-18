@@ -43,16 +43,66 @@ func (r *mutationResolver) LoginUser(ctx context.Context, input model.LoginInput
 }
 
 func (r *mutationResolver) AddToBasket(ctx context.Context, input model.AddToBasketInput) (*model.Basket, error) {
-	if user := r.authService.GetUserFromContext(ctx); user == nil {
+	user := r.authService.GetUserFromContext(ctx)
+	if user == nil {
 		return nil, fmt.Errorf("access denied")
 	}
 	params := order.AddParams{
-		ID:       input.ID,
+		ID:       uint64(input.ID),
 		Quantity: input.Quantity,
 	}
-	r.basketService.Add(params)
-	//TODO handle this later
-	return &model.Basket{}, nil
+	basket, err := r.basketService.Add(user.ID, params)
+	if err != nil {
+		return nil, err
+	}
+	var items []*model.BasketItem
+	for _, item := range basket.Items {
+		it := &model.BasketItem{
+			ProductID:    int(item.ProductID),
+			ProductTitle: item.ProductTitle,
+			Quantity:     item.Quantity,
+			Price:        item.Price,
+		}
+		items = append(items, it)
+
+	}
+	return &model.Basket{
+		Items: items,
+		Total: basket.Total,
+	}, nil
+}
+
+func (r *mutationResolver) RemoveFromBasket(ctx context.Context, input model.RemoveFromBasketInput) (*model.Basket, error) {
+	user := r.authService.GetUserFromContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	}
+	params := order.RemoveParams{
+		ID: uint64(input.ID),
+	}
+	basket, err := r.basketService.Remove(user.ID, params)
+	if err != nil {
+		return nil, err
+	}
+	var items []*model.BasketItem
+	total := float64(0)
+	if basket != nil {
+		for _, item := range basket.Items {
+			it := &model.BasketItem{
+				ProductID:    int(item.ProductID),
+				ProductTitle: item.ProductTitle,
+				Quantity:     item.Quantity,
+				Price:        item.Price,
+			}
+			items = append(items, it)
+			total = basket.Total
+		}
+
+	}
+	return &model.Basket{
+		Items: items,
+		Total: total,
+	}, nil
 }
 
 func (r *queryResolver) Products(ctx context.Context, input *model.ProductListInput) ([]*model.Product, error) {
@@ -72,7 +122,7 @@ func (r *queryResolver) Products(ctx context.Context, input *model.ProductListIn
 	var products []*model.Product
 	for _, p := range result {
 		product := &model.Product{
-			ID:    "", //TODO handle this later
+			ID:    int(p.ID),
 			Name:  p.Name,
 			Price: p.Price,
 		}
@@ -82,7 +132,33 @@ func (r *queryResolver) Products(ctx context.Context, input *model.ProductListIn
 }
 
 func (r *queryResolver) Basket(ctx context.Context) (*model.Basket, error) {
-	panic(fmt.Errorf("not implemented"))
+	user := r.authService.GetUserFromContext(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("access denied")
+	}
+	basket, err := r.basketService.Get(user.ID)
+	if err != nil {
+		return nil, err
+	}
+	var items []*model.BasketItem
+	total := float64(0)
+	if basket != nil {
+		for _, item := range basket.Items {
+			it := &model.BasketItem{
+				ProductID:    int(item.ProductID),
+				ProductTitle: item.ProductTitle,
+				Quantity:     item.Quantity,
+				Price:        item.Price,
+			}
+			items = append(items, it)
+			total = basket.Total
+		}
+
+	}
+	return &model.Basket{
+		Items: items,
+		Total: total,
+	}, nil
 }
 
 // Mutation returns generated1.MutationResolver implementation.
